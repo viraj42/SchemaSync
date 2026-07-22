@@ -1,5 +1,6 @@
 package com.schemasync.schemasync.customerrecord;
 
+import com.schemasync.schemasync.client.Client;
 import com.schemasync.schemasync.common.BaseAuditableEntity;
 import com.schemasync.schemasync.ingestionjob.IngestionJob;
 import jakarta.persistence.*;
@@ -14,7 +15,20 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "customer_records")
+@Table(
+        name = "customer_records",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_job_row",
+                        columnNames = {"job_id", "row_index"}
+                ),
+                @UniqueConstraint(
+                        name = "uk_client_email",
+                        columnNames = {"client_id", "email"}
+                )
+        }
+
+)
 public class CustomerRecord extends BaseAuditableEntity {
 
     @Id
@@ -36,4 +50,11 @@ public class CustomerRecord extends BaseAuditableEntity {
     private String role;
 
     private LocalDate joinDate;
+
+    @Column(name = "row_index", nullable = false)
+    private long rowIndex;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id",nullable = false)
+    private Client client;
 }

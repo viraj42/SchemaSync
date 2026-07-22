@@ -2,11 +2,11 @@ package com.schemasync.schemasync.upload;
 
 import com.schemasync.schemasync.client.Client;
 import com.schemasync.schemasync.client.ClientRepository;
-import com.schemasync.schemasync.customerrecord.CustomerRecord;
-import com.schemasync.schemasync.customerrecord.CustomerRecordRepository;
 import com.schemasync.schemasync.ingestionjob.IngestionJob;
 import com.schemasync.schemasync.ingestionjob.IngestionJobRepository;
 import com.schemasync.schemasync.ingestionjob.StatusType;
+import com.schemasync.schemasync.kafka.KafkaProducerService;
+import com.schemasync.schemasync.kafka.RawRowMessage;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -28,8 +28,7 @@ public class UploadService {
 
     private final ClientRepository clientRepository;
     private final IngestionJobRepository ingestionJobRepository;
-    private final CustomerRecordRepository customerRecordRepository;
-    private final CustomerRecordColumnMapper columnMapper = new CustomerRecordColumnMapper();
+    private final KafkaProducerService kafkaProducerService;
 
     @Transactional
     public UploadResponse processUpload(UUID clientId, MultipartFile file) {
@@ -42,8 +41,16 @@ public class UploadService {
         job.setStatus(StatusType.PROCESSING);
         job = ingestionJobRepository.save(job);
 
-        long processed = 0;
-        long failed = 0;
+        long rowCount = parseAndPublish(job.getId(), file);
+
+        job.setTotalRecords(rowCount);
+        ingestionJobRepository.save(job);
+
+        return new UploadResponse(job.getId(), job.getStatus().name());
+    }
+
+    private long parseAndPublish(UUID jobId, MultipartFile file) {
+        long rowIndex = 0;
 
         try (var reader = new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8);
              CSVParser parser = CSVFormat.DEFAULT.builder()
@@ -55,27 +62,14 @@ public class UploadService {
 
             for (CSVRecord csvRecord : parser) {
                 Map<String, String> row = new LinkedHashMap<>(csvRecord.toMap());
-                try {
-                    CustomerRecord record = columnMapper.map(row);
-                    record.setJob(job);
-                    customerRecordRepository.save(record);
-                    processed++;
-                } catch (Exception rowFailure) {
-                    // Phase 1 has no DLQ yet — a bad row is just counted as failed.
-                    // Phase 5 replaces this catch block with real failure-taxonomy routing.
-                    failed++;
-                }
+                RawRowMessage message = new RawRowMessage(jobId, rowIndex, row);
+                kafkaProducerService.publishRawRow(message);
+                rowIndex++;
             }
         } catch (IOException e) {
             throw new RuntimeException("Failed to read uploaded file", e);
         }
 
-        job.setTotalRecords(processed + failed);
-        job.setProcessedRecords(processed);
-        job.setFailedRecords(failed);
-        job.setStatus(failed == 0 ? StatusType.COMPLETED : StatusType.PARTIAL_FAILURE);
-        ingestionJobRepository.save(job);
-
-        return new UploadResponse(job.getId(), job.getStatus().name());
+        return rowIndex;
     }
 }

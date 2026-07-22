@@ -5,9 +5,9 @@ import com.schemasync.schemasync.customerrecord.CustomerRecord;
 import java.time.LocalDate;
 import java.util.Map;
 
-class CustomerRecordColumnMapper {
+public class CustomerRecordColumnMapper {
 
-    CustomerRecord map(Map<String, String> row) {
+    public CustomerRecord map(Map<String, String> row) {
         CustomerRecord record = new CustomerRecord();
         record.setFullName(findValue(row, "fullname", "full_name", "name"));
         record.setEmail(findValue(row, "email", "e-mail"));
