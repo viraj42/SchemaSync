@@ -5,6 +5,7 @@ import com.schemasync.schemasync.customerrecord.CustomerRecordRepository;
 import com.schemasync.schemasync.ingestionjob.IngestionJob;
 import com.schemasync.schemasync.ingestionjob.IngestionJobRepository;
 import com.schemasync.schemasync.ingestionjob.StatusType;
+import com.schemasync.schemasync.mapping.SchemaMappingService;
 import com.schemasync.schemasync.upload.CustomerRecordColumnMapper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -28,7 +29,7 @@ public class RawIngestionConsumer {
     private final ObjectMapper objectMapper;
     private final IngestionJobRepository ingestionJobRepository;
     private final CustomerRecordRepository customerRecordRepository;
-    private final CustomerRecordColumnMapper columnMapper = new CustomerRecordColumnMapper();
+    private final SchemaMappingService schemaMappingService;
 
     @KafkaListener(topics = RAW_INGESTION_TOPIC)
     @Transactional
@@ -55,7 +56,7 @@ public class RawIngestionConsumer {
             return;
         }
 
-        CustomerRecord candidate = columnMapper.map(message.rowData());
+        CustomerRecord candidate = schemaMappingService.mapRow(message.rowData());
         candidate.setJob(job);
         candidate.setClient(job.getClient());
         candidate.setRowIndex(message.rowIndex());

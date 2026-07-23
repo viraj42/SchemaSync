@@ -30,7 +30,6 @@ public class UploadService {
     private final IngestionJobRepository ingestionJobRepository;
     private final KafkaProducerService kafkaProducerService;
 
-    @Transactional
     public UploadResponse processUpload(UUID clientId, MultipartFile file) {
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown clientId: " + clientId));
