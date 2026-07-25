@@ -9,6 +9,8 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -19,35 +21,47 @@ public class SchemaMappingService {
     private final TargetSchemaCacheService targetSchemaCacheService;
     private final ObjectMapper objectMapper;
 
-    public CustomerRecord mapRow(Map<String, String> rowData) {
+    // Accept a list of mapped rows containing the rowIndex and data
+    public List<CustomerRecord> mapBatch(List<Map<String, Object>> batchData) {
         String schemaDescription = targetSchemaCacheService.getSchemaPromptDescription();
-        String rowJson = objectMapper.writeValueAsString(rowData);
-
-        MappedRowResult result;
+        //serialize entire batch
+        String batchJson;
         try {
-            result = schemaMappingAssistant.mapRow(schemaDescription, rowJson);
+            batchJson = objectMapper.writeValueAsString(batchData);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize batch for LLM", e);
+        }
+        //create container to store llm output
+        MappedBatchResult llmWrapper;
+        try {
+            // One API call for the whole batch, returning our wrapper object!
+            llmWrapper = schemaMappingAssistant.mapBatch(schemaDescription, batchJson);
         } catch (RateLimitException e) {
-            // Distinct log signal — this is a "retry later" failure, not a
-            // "will never succeed" one. Phase 5's DLQ taxonomy formalizes
-            // this distinction (LLM_RATE_LIMITED); for now, at minimum,
-            // don't let it look identical to every other kind of failure.
-            throw new LlmRateLimitedException("Gemini rate limit hit while mapping row", e);
+            throw new LlmRateLimitedException("Gemini rate limit hit while mapping batch", e);
         }
 
-        CustomerRecord record = new CustomerRecord();
-        record.setFullName(result.fullName());
-        record.setEmail(result.email());
-        record.setPhone(result.phone());
-        record.setCompany(result.company());
-        record.setRole(result.role());
-        record.setJoinDate(parseDateSafely(result.joinDate()));
-        return record;
+        List<CustomerRecord> mappedRecords = new ArrayList<>();
+
+        // Unwrap the list here by calling .results()
+        if (llmWrapper != null && llmWrapper.results() != null) {
+            for (MappedRowResult result : llmWrapper.results()) {
+                CustomerRecord record = new CustomerRecord();
+                record.setRowIndex(result.rowIndex()); // We got the index back from the LLM
+                record.setFullName(result.fullName());
+                record.setEmail(result.email());
+                record.setPhone(result.phone());
+                record.setCompany(result.company());
+                record.setRole(result.role());
+                record.setJoinDate(parseDateSafely(result.joinDate()));
+                mappedRecords.add(record);
+            }
+        }
+
+        return mappedRecords;
     }
 
     private LocalDate parseDateSafely(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return null;
-        }
+        if (raw == null || raw.isBlank()) return null;
         try {
             return LocalDate.parse(raw.trim());
         } catch (DateTimeParseException e) {

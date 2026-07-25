@@ -3,6 +3,7 @@ package com.schemasync.schemasync.targetschema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -11,6 +12,7 @@ public class TargetSchemaCacheService {
 
     private final TargetSchemaFieldRepository repository;
     private volatile String cachedSchemaDescription;
+    private volatile Set<String> cachedRequiredFieldNames;
 
     public String getSchemaPromptDescription() {
         String local = cachedSchemaDescription;
@@ -20,6 +22,23 @@ public class TargetSchemaCacheService {
                 if (local == null) {
                     local = buildDescription();
                     cachedSchemaDescription = local;
+                }
+            }
+        }
+        return local;
+    }
+
+    public Set<String> getRequiredFieldNames() {
+        Set<String> local = cachedRequiredFieldNames;
+        if (local == null) {
+            synchronized (this) {
+                local = cachedRequiredFieldNames;
+                if (local == null) {
+                    local = repository.findAll().stream()
+                            .filter(TargetSchemaField::isRequired)
+                            .map(TargetSchemaField::getFieldName)
+                            .collect(Collectors.toSet());
+                    cachedRequiredFieldNames = local;
                 }
             }
         }

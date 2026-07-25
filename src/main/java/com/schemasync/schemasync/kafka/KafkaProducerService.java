@@ -20,8 +20,7 @@ public class KafkaProducerService {
             kafkaTemplate.send(RAW_INGESTION_TOPIC, message.jobId().toString(), json);//send data to kafka
         }
         catch (Exception e){
-            throw new RuntimeException("Failed to serialize/publish RawRowMessage", e);
+            throw new RuntimeException("Failed to publish RawRowMessage", e);
         }
     }
-
 }

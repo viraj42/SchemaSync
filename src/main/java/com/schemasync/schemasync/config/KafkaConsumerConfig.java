@@ -19,13 +19,12 @@ public class KafkaConsumerConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
 
-        // Must be set explicitly — this custom factory bean replaces Spring
-        // Boot's auto-configured one, so application.properties' ack-mode
-        // no longer applies automatically once this bean exists.
+        // Enable batch listener each batch 10 rows
+        factory.setBatchListener(true);
+
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
 
-        // 60s between attempts, 3 tries — gives real quota windows a chance
-        // to reset instead of hammering the API in a tight loop.
+        // Retries apply to the whole batch.
         FixedBackOff backOff = new FixedBackOff(60_000L, 3L);
         factory.setCommonErrorHandler(new DefaultErrorHandler(backOff));
 

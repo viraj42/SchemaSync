@@ -15,11 +15,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @Table(name = "ingestion_jobs")
 public class IngestionJob extends BaseAuditableEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-
     @Column(nullable = false)
     private String fileName;
 
@@ -29,13 +27,11 @@ public class IngestionJob extends BaseAuditableEntity {
 
     @Column(nullable = false)
     private Long totalRecords = 0L;
-
     @Column(nullable = false)
     private Long processedRecords = 0L;
 
     @Column(nullable = false)
     private Long failedRecords = 0L;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;

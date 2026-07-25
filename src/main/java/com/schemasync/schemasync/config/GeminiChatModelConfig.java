@@ -19,11 +19,7 @@ public class GeminiChatModelConfig {
 
     @Bean
     public ChatModel geminiChatModel() {
-        return GoogleAiGeminiChatModel.builder()
-                .apiKey(apiKey)
-                .modelName(modelName)
-                .maxRetries(0)
-                .build();
+        return GoogleAiGeminiChatModel.builder().apiKey(apiKey).modelName(modelName).maxRetries(0).build();
     }
 
     @Bean

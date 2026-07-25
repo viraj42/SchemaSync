@@ -15,19 +15,16 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(
-        name = "customer_records",
+@Table(name = "customer_records",
         uniqueConstraints = {
-                @UniqueConstraint(
-                        name = "uk_job_row",
-                        columnNames = {"job_id", "row_index"}
-                ),
-                @UniqueConstraint(
-                        name = "uk_client_email",
-                        columnNames = {"client_id", "email"}
-                )
+            @UniqueConstraint(
+                    name = "uk_job_row",
+                    columnNames = {"job_id", "row_index"}
+            ),@UniqueConstraint(
+                    name = "uk_client_email",
+                    columnNames = {"client_id", "email"}
+            )
         }
-
 )
 public class CustomerRecord extends BaseAuditableEntity {
 

@@ -18,10 +18,7 @@ public class UploadController {
     private final UploadService uploadService;
 
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
-    public ResponseEntity<UploadResponse> upload(
-            @RequestParam UUID clientId,
-            @RequestParam("file") MultipartFile file) {
-
+    public ResponseEntity<UploadResponse> upload(@RequestParam UUID clientId, @RequestParam("file") MultipartFile file) {
         UploadResponse response = uploadService.processUpload(clientId, file);
         return ResponseEntity.status(202).body(response);
     }
