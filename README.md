@@ -18,7 +18,7 @@
 
 | 🌐 Live Demo |
 |:---:|
-| `https://schemasync.vercel.app/` |
+| `https://schema-sync-phi.vercel.app/` |
 
 </div>
 
