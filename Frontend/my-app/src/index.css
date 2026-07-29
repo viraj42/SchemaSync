@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #F8FAFC; /* slate-50 */
+  --surface: #FFFFFF;
+  --border: #E2E8F0; /* slate-200 */
+  --text-primary: #0F172A; /* slate-900 */
+  --text-secondary: #64748B; /* slate-500 */
+  --accent: #4F46E5; /* indigo-600 */
+  --accent-hover: #4338CA; /* indigo-700 */
+  --accent-text: #FFFFFF;
+  --success: #10B981; /* emerald-500 */
+  --warning: #F59E0B; /* amber-500 */
+  --danger: #EF4444; /* red-500 */
+  --info: #3B82F6; /* blue-500 */
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0B1120; /* deeper slate */
+  --surface: #1E293B; /* slate-800 */
+  --border: #334155; /* slate-700 */
+  --text-primary: #F8FAFC; /* slate-50 */
+  --text-secondary: #94A3B8; /* slate-400 */
+  --accent: #6366F1; /* indigo-500 */
+  --accent-hover: #818CF8; /* indigo-400 */
+  --accent-text: #FFFFFF;
+  --success: #34D399; /* emerald-400 */
+  --warning: #FBBF24; /* amber-400 */
+  --danger: #F87171; /* red-400 */
+  --info: #60A5FA; /* blue-400 */
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
