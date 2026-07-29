@@ -23,6 +23,9 @@ WORKDIR /app
 # Copy the built jar from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
+# Copy the Aiven Kafka CA certificate
+COPY aiven-ca.pem /app/aiven-ca.pem
+
 # Expose the default port (Render automatically maps the $PORT environment variable)
 EXPOSE 8080
 
