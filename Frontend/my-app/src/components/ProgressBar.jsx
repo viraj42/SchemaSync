@@ -1,10 +1,29 @@
+/*
+ * ProgressBar.jsx
+ * Animated progress bar component.
+ * Props:
+ *   value  - number 0-100, the fill percentage
+ */
 export default function ProgressBar({ value = 0 }) {
-  const clampedValue = Math.min(100, Math.max(0, value || 0));
+  // Clamp value between 0 and 100
+  const clampedValue = Math.min(100, Math.max(0, value));
+
   return (
-    <div className="w-full bg-border/50 rounded-full h-2 overflow-hidden shadow-inner">
+    <div
+      role="progressbar"
+      aria-valuenow={clampedValue}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      className="w-full h-2 rounded-full overflow-hidden"
+      style={{ background: 'var(--border)' }}
+    >
       <div
-        className="bg-accent h-full rounded-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(79,70,229,0.5)]"
-        style={{ width: `${clampedValue}%` }}
+        className="h-full rounded-full transition-all duration-700 ease-out"
+        style={{
+          width: `${clampedValue}%`,
+          background: 'linear-gradient(90deg, var(--grad-start), var(--grad-mid), var(--grad-end))',
+          boxShadow: clampedValue > 0 ? '0 0 10px rgba(99,102,241,0.5)' : 'none',
+        }}
       />
     </div>
   );
